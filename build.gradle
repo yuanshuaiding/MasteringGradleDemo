@@ -1,5 +1,15 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
-
+buildscript {
+    //其他第三方插件
+    dependencies {
+        // didi doKit
+        classpath("io.github.didi.dokit:dokitx-plugin:3.4.3.1")
+        // ARouter
+        classpath("com.alibaba:arouter-register:1.0.2")
+        // 合规检测插件
+        classpath("com.github.yuanshuaiding.PrivacyGuard:plugin-sentry:1.1.0")
+    }
+}
 plugins {
     id 'com.android.application' version '7.3.0' apply false
     id 'org.jetbrains.kotlin.android' apply false
@@ -8,5 +18,5 @@ plugins {
 ext {
     //两种写法都可以
     compose_version = '1.2.1'
-    set('kt_version','1.9.0')
+    set('kt_version', '1.9.0')
 }

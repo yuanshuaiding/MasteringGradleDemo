@@ -16,8 +16,60 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
-            useSupportLibrary true
+            // 不让gradle自动生成不同屏幕分辨率的png图
+            generatedDensities = []
+            useSupportLibrary = false
         }
+
+        //在 BuildConfig.java 中增加属性
+        buildConfigField("int", "a", "123")
+        buildConfigField("String", "b", "\"123\"")
+        //动态生成res/values 资源
+        resValue("string", "aa", "test words")
+
+
+        // Native Optional Configuration
+//        externalNativeBuild {
+//            cmake {
+//                getcFlags().add("-D__STDC_FORMAT_MACROS")
+//                cppFlags.add("-fexceptions")
+//
+//                arguments.addAll(listOf("-DANDROID_ARM_NEON=TRUE", "-DANDROID_TOOLCHAIN=clang"))
+//
+//                abiFilters.addAll(setOf("armeabi-v7a", "arm64-v8a", "x86"))
+//
+//                targets.add("libmy.so")
+//            }
+//        }
+
+    }
+
+    //配置功能类型维度（功能类型，收费类型）
+    flavorDimensions = ["function", "pay"]
+
+    //差异化构建不同产物(2*3=6，再与buildTyps里的debug和release做笛卡尔积，一共有12中variant产物)
+    productFlavors {
+        full {
+            setDimension("function")
+        }
+
+        lite {
+            setDimension("function")
+        }
+
+
+        free {
+            setDimension("pay")
+        }
+
+        vip {
+            setDimension("pay")
+        }
+
+        svip {
+            setDimension("pay")
+        }
+
     }
 
     buildTypes {
@@ -25,6 +77,55 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+
+    //过滤掉含svip这个flavor的构建变体
+    variantFilter { variant ->
+        variant.flavors.each{
+            if(it.name=="svip"){
+                setIgnore(true)
+            }
+        }
+    }
+
+    //使用spits按照abi和density来拆分构建不同的apk
+    splits {
+        abi {
+            enable true
+            reset()
+            include "armeabi-v7a", "arm64-v8a"
+            universalApk false
+        }
+
+        density {
+            enable true
+            reset()
+            include "xhdpi", "xxhdpi"
+        }
+
+    }
+
+    sourceSets {
+        main {
+            //指定多个源码目录位置
+            java.srcDirs = ["src/main/java", "src/main/kotlin"]
+            //指定其他后缀文件为java源码文件(打包apk时会报错，需要对该文件进行额外编译处理)
+            java.filter.include("src/main/java/*.etc")
+
+        }
+    }
+    dexOptions {
+        // Compile Optimize
+        javaMaxHeapSize "2048m"
+        maxProcessCount = 8
+        threadCount = 8
+        preDexLibraries = false
+        //设置dx工具的额外参数，如： 哪些class需要放到main dex中等
+        additionalParameters = ["--main-dex-list=MainDexList.txt", '--minimal-main-dex']
+
+        // Affect the output
+        //jumboMode = true
+        //keepRuntimeAnnotatedClasses = true
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -43,6 +144,12 @@ android {
         resources {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        setForcedModules("io.reactivex.rxjava2:rxjava:2.2.4")
     }
 }
 
@@ -65,6 +172,10 @@ dependencies {
     implementation 'androidx.compose.material3:material3'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx'
     implementation 'androidx.activity:activity-compose'
+
+    //通过configruations.resolutionStrategy强制使用某个版本
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.10'
+
     implementation "androidx.compose.ui:ui:$compose_version"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
     testImplementation 'junit:junit'

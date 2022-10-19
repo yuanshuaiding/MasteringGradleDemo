@@ -1,0 +1,6 @@
+package com.eric.manager.gradle;
+
+//以etc为结尾的文件，依然会被识别为java
+class MyEtc{
+
+}

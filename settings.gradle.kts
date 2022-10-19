@@ -1,10 +1,10 @@
 rootProject.name = "MasteringGradleDemo"
-include(":app", ":mylibrary1", ":myLib1", ":myLib2", ":myLib3",":platform")
+include(":app", ":mylibrary1", ":myLib1", ":myLib2", ":myLib3", ":platform")
 
 //获取全局属性
-val gradleVersion=gradle.gradleVersion
-val gradleDir=gradle.gradleHomeDir
-val userDir=gradle.gradleUserHomeDir
+val gradleVersion = gradle.gradleVersion
+val gradleDir = gradle.gradleHomeDir
+val userDir = gradle.gradleUserHomeDir
 println("gradleVersion:$gradleVersion")
 println("gradle_dir:$gradleDir")
 println("user_home_dir:$userDir")
@@ -20,22 +20,23 @@ println("rootProject:${rootProject.name}")
 //    }
 //}
 
-//gradle 7.0使用pluginManagement替换根项目build.gradle中的buildScrip，管理项目插件依赖（plugins部分）
+//gradle 7.x后使用pluginManagement替换根项目build.gradle中的buildScrip，管理项目插件依赖（plugins部分）
 pluginManagement {
     repositories {
         gradlePluginPortal()
         google()
         mavenCentral()
+        maven(url = "https://jitpack.io")
     }
     resolutionStrategy {
-        eachPlugin{
-            println("插件名称：${requested.id.id}:${requested.version?:""}")
+        eachPlugin {
+            println("插件名称：${requested.id.id}:${requested.version ?: ""}")
             //强制某个插件使用指定版本号
             if (requested.id.namespace == "com.android") {
                 useModule("com.android.tools.build:gradle:7.3.0")
             }
             //或
-            if(requested.id.id=="org.jetbrains.kotlin.android"){
+            if (requested.id.id == "org.jetbrains.kotlin.android") {
                 useVersion("1.6.10")
             }
         }
@@ -47,6 +48,11 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven(
+            url = "http://192.168.21.229:8081/repository/maven-releases/"
+        ) {
+            isAllowInsecureProtocol = true
+        }
     }
 }
 
