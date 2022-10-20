@@ -1,6 +1,8 @@
 plugins {
     id 'java-library'
     id 'org.jetbrains.kotlin.jvm'
+    //发布jar至maven的插件
+    id 'maven-publish'
 }
 
 println("解析build script:${project.name}")
@@ -9,10 +11,36 @@ println("解析build script:${project.name}")
 java {
     sourceCompatibility = JavaVersion.VERSION_1_7
     targetCompatibility = JavaVersion.VERSION_1_7
+    //同时发布source jar和javadoc jar
+    withSourcesJar()
+    withJavadocJar()
 }
 
 dependencies {
     implementation("com.google.code.gson:gson:2.8.5") {
         force(true)
+    }
+}
+
+//发布至maven的相关配置[因为组件仅在 afterEvaluate 阶段确定，所以建议在此生命周期配置publishing]
+version='1.0-snapshot'
+afterEvaluate {
+    publishing {
+        publications {
+            push(MavenPublication) {
+                groupId = "org.gradle.sample"
+                artifactId = "library"
+                version = "1.0"
+                from components.java
+            }
+        }
+
+        repositories {
+            maven {
+                def releasesRepoUrl = layout.buildDirectory.dir('repos/releases')
+                def snapshotsRepoUrl = layout.buildDirectory.dir('repos/snapshots')
+                url = version.endsWith('snapshot') ? snapshotsRepoUrl:releasesRepoUrl
+            }
+        }
     }
 }

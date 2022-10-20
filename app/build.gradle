@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    //发布apk至maven的插件（agp3.6之后提供支持）
+    id 'maven-publish'
 }
 
 android {
@@ -184,4 +186,37 @@ dependencies {
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
+}
+
+//发布apk至指定maven仓库
+def versionName='1.0-snapshot'
+afterEvaluate{
+    publishing{
+        publications{
+            fullFreeDev(MavenPublication){
+                //会把符合fullFreeDebug构建变体生成的所有apk打包成zip上传至指定maven
+                from components.fullFreeDebug_apk
+
+                groupId = 'com.eric.manager.gradle'
+                artifactId = 'full-dev-apk'
+                version = '1.0-full'
+            }
+
+            liteFreeDev(MavenPublication){
+                from components.liteFreeDebug_apk
+
+                groupId = 'com.eric.manager.gradle'
+                artifactId = 'lite-dev-apk'
+                version = '1.0-lite'
+            }
+        }
+
+        repositories {
+            maven {
+                def releasesRepoUrl = layout.buildDirectory.dir('repos/releases')
+                def snapshotsRepoUrl = layout.buildDirectory.dir('repos/snapshots')
+                url = versionName.endsWith('snapshot') ? snapshotsRepoUrl:releasesRepoUrl
+            }
+        }
+    }
 }
